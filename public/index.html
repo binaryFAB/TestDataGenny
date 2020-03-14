@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Test Data Gen</title>
+</head>
+<body>
+    <h2>JavaScript Test Sample Generator</h2>
+
+    <p>
+        Click the button below to generate batches of test samples.
+    </p>
+
+    <form>
+        Number of Batches:<br>
+        <input type="number" id="batchQtyField" value=15>
+        <br>
+        Samples Per Batch:<br>
+        <input type="number" id="messageQtyField" value=6>
+        <br>
+        Lower data sample limit:<br>
+        <input type="number" id="lowerLimitField" min=0 value=1>
+        <br>
+        Upper data sample limit:<br>
+        <input type="number" id="upperLimitField" value=10>
+        <br>
+        <br>
+        <input type="checkbox" id="arrayCheckBox" value="true" onclick="toggleArray()" checked>Use '[],' delimiter around batches (turn this off to get output suitable for import as csv).
+        <br />
+        <input type="checkbox" id="fractionCheckBox" value="false" onclick="toggleFraction(this.checked)">Generate fractions (turn this on to generate numbers < 1 (divides random result by upper limit)).
+    </form>
+
+    <p>
+        <button id="generateData" role="button" onclick="createTestData()">Generate Test Data</button>
+    </p>
+
+    <p id="output"></p>
+
+    <script>
+        let batches = [];
+
+        const delimiterOpen = '[';
+        const delimiterClose = ']';
+        const seperator = ',<br/>';
+
+        let currentSeperator = seperator;
+        let currentDelimiterOpen = delimiterOpen;
+        let currentDelimiterClose = delimiterClose;
+
+        let useDelimiter = true;
+        let useFraction = false;
+
+        toggleArray = () => {
+            if (useDelimiter === true) {
+                useDelimiter = false;
+                currentDelimiterOpen = '';
+                currentDelimiterClose = '';
+                currentSeperator = '<br/>';
+            }
+            else {
+                useDelimiter = true;
+                currentDelimiterOpen = delimiterOpen;
+                currentDelimiterClose = delimiterClose;
+                currentSeperator = seperator;
+            }
+        };
+
+        toggleFraction = (toggle) => {
+            useFraction = toggle;
+        };
+
+        getFormData = () => {
+            const batchQty = document.getElementById('batchQtyField').value;
+            const smplQty = document.getElementById('messageQtyField').value;
+            const lowerLimit = document.getElementById('lowerLimitField').value;
+            const upperLimit = document.getElementById('upperLimitField').value;
+
+            return { batch: batchQty, samples: smplQty, lower: lowerLimit, upper: upperLimit };
+        };
+
+        createTestData = () => {
+            const spec = getFormData();
+
+            const batchesRequired = spec.batch;
+            const samplesPerBatch = spec.samples;
+            const lowerLimit = spec.lower;
+            const upperLimit = spec.upper;
+
+            createBatches(batchesRequired, samplesPerBatch, lowerLimit, upperLimit);
+        };
+
+        printBatches = (lower, upper) => {
+            let batchOutput = "";
+        
+            document.getElementById("output").innerHTML = `<br/>New batch generated with values between ${lower} - ${upper} inclusive.<br/>`;
+            document.getElementById("output").innerHTML += `<br/>${currentDelimiterOpen}`;
+
+            batches.forEach((batch) => {
+                batchOutput += `${currentDelimiterOpen}${batch}${currentDelimiterClose}${currentSeperator}`;
+            });
+
+            batchOutput = batchOutput.substring(0, batchOutput.length - currentSeperator.length); // remove trailing delimiter
+            document.getElementById("output").innerHTML += batchOutput;
+            document.getElementById("output").innerHTML += `${currentDelimiterClose}<br/>`;
+        };
+
+        createBatches = (qty, smpls, lower, upper) => {
+            console.log(`Batch Creation - Params are: Number of batches: ${qty}, Samples: ${smpls}, Lower sample limit: ${lower}, Upper sample limit: ${upper}.`);
+            batches = []; // Reset before run
+            let divisor = 1;
+
+            if (useFraction === true) {
+                divisor = upper;
+            }
+
+            for (let i = 0; i < qty; i++) {
+                const batch = [];
+                for (let j = 0; j < smpls; j++) {
+                    const sample = (Math.floor((Math.random() * upper + 1) + lower)) / divisor;
+                    batch.push(sample);
+                }//forInner
+                batches.push(batch);
+            } //forOuter
+            printBatches(lower, upper);
+        };//endfn
+    </script>
+</body>
+</html>
+
